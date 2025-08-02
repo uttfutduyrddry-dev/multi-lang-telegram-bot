@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # المتغيرات البيئية (قراءة القيم من البيئة)
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 HUGGING_FACE_TOKEN = os.environ.get("HUGGING_FACE_TOKEN")
-API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill"
+API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"
 PORT = int(os.environ.get('PORT', '80'))
 
 # التحقق من وجود التوكنز
@@ -39,7 +39,7 @@ def query(payload):
 # دالة أمر /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_name = update.effective_user.first_name
-    await update.message.reply_text(f'أهلاً بك يا {user_name}! أنا بوت دردشة، يمكنك التحدث معي الآن.')
+    await update.message.reply_text(f'أهلاً بك يا {user_name}! 👋\nأنا بوت ذكاء اصطناعي، أرسل لي أي رسالة وسأرد عليك.')
 
 # دالة معالجة الرسائل النصية
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -51,17 +51,12 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     response = query(payload)
 
-    if response and isinstance(response, list) and response[0].get('generated_text'):
-        bot_response = response[0]['generated_text']
-        if user_message in bot_response:
-            bot_response = bot_response.replace(user_message, "").strip()
-        
-        if bot_response:
-            await update.message.reply_text(bot_response)
-        else:
-            await update.message.reply_text("عذرًا، لم أتمكن من توليد رد مناسب.")
+    # الرد المتوقع من DialoGPT هو في شكل نص مباشر
+    if response and isinstance(response, dict) and 'generated_text' in response:
+        bot_response = response['generated_text'].strip()
+        await update.message.reply_text(bot_response)
     else:
-        await update.message.reply_text("عذرًا، حدث خطأ أثناء معالجة طلبك. يرجى المحاولة لاحقًا.")
+        await update.message.reply_text("عذرًا، لم أتمكن من توليد رد مناسب. حاول مرة أخرى.")
 
 # دالة رئيسية لتشغيل البوت
 def main():
@@ -69,10 +64,9 @@ def main():
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
-    
-    # Check if running on Render for webhook setup
+
     if "RENDER_EXTERNAL_HOSTNAME" in os.environ:
-        logger.info("Running on Render. Setting up webhook.")
+        logger.info("تشغيل البوت على Render باستخدام Webhook.")
         application.run_webhook(
             listen="0.0.0.0",
             port=PORT,
@@ -80,7 +74,7 @@ def main():
             webhook_url=f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/{TELEGRAM_BOT_TOKEN}"
         )
     else:
-        logger.info("Running locally. Using polling.")
+        logger.info("تشغيل البوت محليًا باستخدام polling.")
         application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
