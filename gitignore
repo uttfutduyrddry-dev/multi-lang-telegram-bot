@@ -1,0 +1,6 @@
+# Ignore python files
+_pycache_/
+*.рус
+
+# Ignore environment variables file
+.env
