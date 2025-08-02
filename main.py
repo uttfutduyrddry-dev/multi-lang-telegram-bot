@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # المتغيرات البيئية (يفضل استخدامها لتخزين المعلومات الحساسة)
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 HUGGING_FACE_TOKEN = os.environ.get("HUGGING_FACE_TOKEN")
-API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-large"
+API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill"
 
 # التحقق من وجود التوكنز
 if not TELEGRAM_BOT_TOKEN or not HUGGING_FACE_TOKEN:
